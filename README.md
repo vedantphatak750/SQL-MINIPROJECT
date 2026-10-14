@@ -22,8 +22,8 @@ pnpm start
 ## Supabase setup (manual, required for live data)
 
 1. Create a Supabase project.
-2. In Supabase **SQL Editor**, run `supabase/schema.sql` first.
-3. Run `supabase/seed.sql` second.
+2. For a fresh Supabase project, run `supabase/schema.sql` first, then `supabase/seed.sql`.
+3. For the existing already-running project, run **only** `supabase/migrations/20261014_add_customers.sql`. It is idempotent and does not drop or reset existing data.
 4. Copy the Project URL and publishable/anon browser key into `.env.local`:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_PUBLISHABLE_KEY`
@@ -36,7 +36,8 @@ No credentials are included in this repository. The browser client never uses a 
 
 - `categories` and `suppliers` are parent tables.
 - `products` references both and enforces non-negative prices, stock, and reorder levels.
-- `purchases` → `purchase_items` and `sales` → `sale_items` model transactions.
+- `customers` stores 30 fictional customer records with unique codes and emails.
+- `purchases` → `purchase_items` and `sales` → `sale_items` model transactions. `sales.customer_id` is nullable for backward compatibility while preserving `customer_name`.
 - `stock_movements` records opening stock, purchases, sales, restocks, and adjustments.
 - Indexes support category/supplier lookups and movement history.
 - RLS is enabled on all exposed tables. The included anonymous policies are intentionally permissive for a classroom demo and must be replaced with authenticated policies before production use.
@@ -44,7 +45,9 @@ No credentials are included in this repository. The browser client never uses a 
 ## Functional features
 
 - Computed metrics: 6 products, 115 units, 2 low-stock products, and ₹9,230 initial inventory value.
-- Overview, Inventory, Categories, Suppliers, Purchases, Sales, Stock Movements, and Reports navigation.
+- Overview, Inventory, Categories, Suppliers, Customers, Purchases, Sales, Stock Movements, and Reports navigation.
+- Customers page with Supabase-backed loading, total count, search, and add-customer persistence.
+- Sale entry selects a customer from the customer directory while retaining the walk-in fallback.
 - Product search across name/SKU/supplier; category and stock-status filters; sortable inventory columns.
 - Add/edit products, local restock, purchase-entry simulation, and sale-entry simulation.
 - `record_sale` locks the product row, checks stock, creates the sale and sale item, deducts stock, and records one negative SALE movement atomically.
@@ -53,6 +56,6 @@ No credentials are included in this repository. The browser client never uses a 
 
 ## Known limitations
 
-- The current UI reads live products when Supabase is configured. Product edit/restock/sale controls retain the local demo state path unless the corresponding helper in `client/src/lib/supabase.js` is wired into the UI action; the secure database RPCs are provided and ready for that final wiring step.
+- Customers are genuinely fetched and inserted through Supabase when configured. Restock and sale operations use the database RPCs in live mode; local demo mode remains available when credentials are absent.
 - The anonymous RLS policy is for a college demonstration only.
 - No real authentication, payments, or production hosting is claimed.

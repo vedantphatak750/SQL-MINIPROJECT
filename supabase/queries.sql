@@ -9,3 +9,8 @@ select sa.sale_id,sa.sale_date,sa.customer_name,sa.payment_method,si.quantity,si
 select m.*,p.product_name from stock_movements m join products p using(product_id) order by m.movement_date desc;
 update products set unit_price=75, reorder_level=7, updated_at=now() where sku='ST-003';
 select * from products where stock_qty=0 or stock_qty <= reorder_level;
+
+-- Customers
+select * from customers order by customer_name;
+select count(*) as total_customer_count from customers;
+select c.customer_code,c.customer_name,c.email,s.sale_id,s.sale_date,s.payment_method from customers c left join sales s on s.customer_id=c.customer_id order by c.customer_name,s.sale_date desc;
